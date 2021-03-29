@@ -21,6 +21,9 @@ def draw_floor():
     # Second floor movement
     screen.blit(floor_surface,(floor_x_position+576,864))
 
+def create_pipe():
+    new_pipe = pipe_surface.get_rect(midtop=(400,700))
+    return new_pipe
 ############################## Develop ##########################################
 # Set the screen display size
 screen = pygame.display.set_mode((576,1024))
@@ -33,7 +36,7 @@ back_surface = pygame.transform.scale2x(back_surface)
 floor_surface = pygame.image.load('assets/base.png').convert()
 floor_surface = pygame.transform.scale2x(floor_surface)
 # Set floor initial x position
-floor_x_position = 576
+floor_x_position = 0
 
 # Load bird surface
 bird_surface = pygame.image.load('assets/redbird-midflap.png')
@@ -44,7 +47,10 @@ bird_rect = bird_surface.get_rect(center=(250,500))
 # Load pipe surface
 pipe_surface = pygame.image.load('assets/pipe-green.png')
 pipe_surface = pygame.transform.scale2x(pipe_surface)
-#6pipe_rect = pipe_surface.get_rect(midtop=())
+# Place pipe rectangle for colisions
+pipe_list = []
+SPAWNPIPE = pygame.USEREVENT
+pygame.time.set_timer(SPAWNPIPE,1200)
 
 gravity = 0.1
 bird_velocity = 0
@@ -63,20 +69,27 @@ while True:
             if event.key == pygame.K_UP:   
                 bird_velocity = 0
                 bird_velocity -= 5
-
+        if event.type == SPAWNPIPE:
+            pipe_list.append(create_pipe())
+            print(pipe_list)
     # 'back surface' drawing
     screen.blit(back_surface,(0,0))
+    
     # Floor drawing
     floor_x_position -= 1
     draw_floor()
     if floor_x_position == -576:
         floor_x_position =0
+    
     # Bird drawing
     bird_velocity += gravity
     bird_rect.centery += bird_velocity
     screen.blit(bird_surface,bird_rect)
     
-   
+    # Pipe Drawing
+    for pipe in pipe_list:
+        screen.blit(pipe_surface,pipe)
+     
     # Refresh the screen
     pygame.display.update()
     # Set Refresh Rate
