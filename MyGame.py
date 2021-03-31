@@ -10,7 +10,7 @@ import pygame.display
 import pygame.transform
 import pygame.time
 import pygame.event
-
+import random
 # Inicialize PyGame instance
 pygame.init()
 
@@ -22,8 +22,21 @@ def draw_floor():
     screen.blit(floor_surface,(floor_x_position+576,864))
 
 def create_pipe():
-    new_pipe = pipe_surface.get_rect(midtop=(400,700))
-    return new_pipe
+    pipe_random_pos = random.choice(pipe_height)
+    bottom_pipe = pipe_surface.get_rect(midtop=(600,pipe_random_pos))
+    top_pipe = pipe_surface.get_rect(midbottom=(600,pipe_random_pos - 300))
+    return top_pipe, bottom_pipe
+
+def move_pipes(pipes):
+    for pipe in pipes:
+        pipe.centerx -=2
+    return pipes
+
+def draw_pipes(pipes):
+    for pipe in pipes:
+        screen.blit(pipe_surface,pipe)
+
+
 ############################## Develop ##########################################
 # Set the screen display size
 screen = pygame.display.set_mode((576,1024))
@@ -39,21 +52,26 @@ floor_surface = pygame.transform.scale2x(floor_surface)
 floor_x_position = 0
 
 # Load bird surface
-bird_surface = pygame.image.load('assets/redbird-midflap.png')
+bird_surface = pygame.image.load('assets/redbird-midflap.png').convert()
 bird_surface = pygame.transform.scale2x(bird_surface)
 # Place bird rectangle for colisions
 bird_rect = bird_surface.get_rect(center=(250,500))
 
 # Load pipe surface
-pipe_surface = pygame.image.load('assets/pipe-green.png')
+pipe_surface = pygame.image.load('assets/pipe-green.png').convert()
 pipe_surface = pygame.transform.scale2x(pipe_surface)
-# Place pipe rectangle for colisions
+# Make pipe list to add pipes
 pipe_list = []
+# Every 1200ms SPAWNPIPE event is trigered
 SPAWNPIPE = pygame.USEREVENT
 pygame.time.set_timer(SPAWNPIPE,1200)
+# Set heights for pipes
+pipe_height = [400,600,800]
 
+# Set gravity aceleration and bird velocity
 gravity = 0.1
 bird_velocity = 0
+
 # Set the clock for refresh rate
 clock = pygame.time.Clock()
 
@@ -65,31 +83,36 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        # If event is pressing down K_UP, then birds moves up
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:   
                 bird_velocity = 0
                 bird_velocity -= 5
+        # If event is SPAWNPIPE, then create a pipe
         if event.type == SPAWNPIPE:
-            pipe_list.append(create_pipe())
-            print(pipe_list)
+            pipe_list.extend(create_pipe())
+            
+    
     # 'back surface' drawing
     screen.blit(back_surface,(0,0))
     
-    # Floor drawing
-    floor_x_position -= 1
-    draw_floor()
-    if floor_x_position == -576:
-        floor_x_position =0
+    
     
     # Bird drawing
     bird_velocity += gravity
     bird_rect.centery += bird_velocity
     screen.blit(bird_surface,bird_rect)
     
-    # Pipe Drawing
-    for pipe in pipe_list:
-        screen.blit(pipe_surface,pipe)
-     
+    # Pipe moving and drawing
+    pipe_list = move_pipes(pipe_list)
+    draw_pipes(pipe_list) 
+    
+    # Floor drawing
+    floor_x_position -= 2
+    draw_floor()
+    if floor_x_position == -576:
+        floor_x_position =0
+   
     # Refresh the screen
     pygame.display.update()
     # Set Refresh Rate
