@@ -29,7 +29,7 @@ def create_pipe():
 
 def move_pipes(pipes):
     for pipe in pipes:
-        pipe.centerx -=2
+        pipe.centerx -= floor_velocity
     return pipes
 
 def draw_pipes(pipes):
@@ -50,6 +50,9 @@ floor_surface = pygame.image.load('assets/base.png').convert()
 floor_surface = pygame.transform.scale2x(floor_surface)
 # Set floor initial x position
 floor_x_position = 0
+# Every 12s floor velocity is aumented
+INCREASE_VELOCITY = pygame.USEREVENT + 1
+pygame.time.set_timer(INCREASE_VELOCITY,12000)
 
 # Load bird surface
 bird_surface = pygame.image.load('assets/redbird-midflap.png').convert()
@@ -63,15 +66,15 @@ pipe_surface = pygame.transform.scale2x(pipe_surface)
 # Make pipe list to add pipes
 pipe_list = []
 # Every 1200ms SPAWNPIPE event is trigered
-SPAWNPIPE = pygame.USEREVENT
+SPAWNPIPE = pygame.USEREVENT + 0 
 pygame.time.set_timer(SPAWNPIPE,1200)
 # Set heights for pipes
 pipe_height = [400,600,800]
 
-# Set gravity aceleration and bird velocity
+# Set gravity aceleration, bird and floor velocity
 gravity = 0.1
 bird_velocity = 0
-
+floor_velocity = 2
 # Set the clock for refresh rate
 clock = pygame.time.Clock()
 
@@ -91,12 +94,13 @@ while True:
         # If event is SPAWNPIPE, then create a pipe
         if event.type == SPAWNPIPE:
             pipe_list.extend(create_pipe())
+        # If event is INCREASE_VELOCITY, increase velocity of the bird
+        if event.type == INCREASE_VELOCITY:
+            floor_velocity += 1
             
     
     # 'back surface' drawing
     screen.blit(back_surface,(0,0))
-    
-    
     
     # Bird drawing
     bird_velocity += gravity
@@ -108,9 +112,9 @@ while True:
     draw_pipes(pipe_list) 
     
     # Floor drawing
-    floor_x_position -= 2
+    floor_x_position -= floor_velocity
     draw_floor()
-    if floor_x_position == -576:
+    if floor_x_position <= -576:
         floor_x_position =0
    
     # Refresh the screen
